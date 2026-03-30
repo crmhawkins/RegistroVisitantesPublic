@@ -29,8 +29,8 @@ class CheckInController extends Controller
     public function processImages(Request $request)
     {
         $request->validate([
-            'dni_front' => 'required|file|mimes:jpeg,png,jpg,webp,heic,heif|max:20480', // 20MB max
-            'dni_back' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:20480',
+            'dni_front' => 'required|file|mimes:jpeg,png,jpg,webp,heic,heif',
+            'dni_back' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif',
         ]);
 
         $frontPath = $request->file('dni_front')->store('private/dni_uploads');
