@@ -129,7 +129,7 @@
 <body>
     <div class="container">
         <header>
-            <div class="logo">HAWKINS <span style="font-size: 10px; color: var(--border); font-weight: normal; vertical-align: top; margin-left: 4px;">v1.1</span></div>
+            <div class="logo">HAWKINS <span style="font-size: 10px; color: var(--border); font-weight: normal; vertical-align: top; margin-left: 4px;">v1.2</span></div>
             <div class="lang-switch">
                 <select onchange="window.location.href='/lang/'+this.value">
                     <option value="es" {{ app()->getLocale() == 'es' ? 'selected' : '' }}>ES</option>
