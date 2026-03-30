@@ -1,6 +1,23 @@
 <x-layout>
     <h1>{{ __('Paso 1 - Toma de datos') }}</h1>
 
+    @if(isset($tokenError) && $tokenError)
+    <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 15px; color: #b91c1c;">
+        ⚠️ {{ $tokenError }}
+    </div>
+    @endif
+
+    @if(isset($reservationData) && $reservationData)
+    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 15px; color: #1e40af;">
+        🏨 <strong>{{ __('Reserva detectada:') }}</strong>
+        {{ $reservationData['apartamento'] ?? '' }}
+        &nbsp;·&nbsp;
+        {{ __('Entrada') }}: {{ $reservationData['checkin'] ?? '' }}
+        &nbsp;·&nbsp;
+        {{ __('Salida') }}: {{ $reservationData['checkout'] ?? '' }}
+    </div>
+    @endif
+
     <div id="upload-form">
         <div class="file-upload-wrapper" id="front-wrapper">
             <input type="file" id="dni_front" accept="image/*">

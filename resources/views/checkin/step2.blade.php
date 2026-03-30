@@ -2,6 +2,17 @@
     <h1>{{ __('Paso 2 - Confirmación de datos') }}</h1>
     <p style="color: var(--text-muted); margin-bottom: 24px;">{{ __('Por favor, revisa y completa los datos.') }}</p>
 
+    @if(!empty($reservationData))
+    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 15px; color: #1e40af;">
+        🏨 <strong>{{ __('Reserva vinculada:') }}</strong>
+        {{ $reservationData['apartamento'] ?? '' }}
+        &nbsp;·&nbsp;
+        {{ __('Entrada') }}: {{ $reservationData['checkin'] ?? '' }}
+        &nbsp;·&nbsp;
+        {{ __('Salida') }}: {{ $reservationData['checkout'] ?? '' }}
+    </div>
+    @endif
+
     @if ($errors->any())
         <div style="background: #fee2e2; color: #b91c1c; padding: 15px; border-radius: 8px; margin-bottom: 24px;">
             <ul style="margin:0; padding-left: 20px;">
@@ -64,12 +75,12 @@
 
                 <div class="form-group">
                     <label>{{ __('Nombre') }} *</label>
-                    <input type="text" name="guests[0][first_name]" required value="{{ old('guests.0.first_name') }}">
+                    <input type="text" name="guests[0][first_name]" required value="{{ old('guests.0.first_name', $reservationData['nombre'] ?? '') }}">
                 </div>
 
                 <div class="form-group">
                     <label>{{ __('Apellidos') }} *</label>
-                    <input type="text" name="guests[0][last_name]" required value="{{ old('guests.0.last_name') }}">
+                    <input type="text" name="guests[0][last_name]" required value="{{ old('guests.0.last_name', $reservationData['apellido'] ?? '') }}">
                 </div>
 
                 <div class="form-group">
@@ -142,12 +153,12 @@
 
                 <div class="form-group">
                     <label>{{ __('Teléfono') }}</label>
-                    <input type="text" name="guests[0][phone]" value="{{ old('guests.0.phone') }}">
+                    <input type="text" name="guests[0][phone]" value="{{ old('guests.0.phone', $reservationData['telefono'] ?? '') }}">
                 </div>
 
                 <div class="form-group">
                     <label>{{ __('Email') }}</label>
-                    <input type="email" name="guests[0][email]" value="{{ old('guests.0.email') }}">
+                    <input type="email" name="guests[0][email]" value="{{ old('guests.0.email', $reservationData['email'] ?? '') }}">
                 </div>
                 
                 <hr style="border: 0; border-top: 1px solid var(--border); margin: 32px 0;">
@@ -157,12 +168,12 @@
         <!-- BOOKING BLOCKS -->
         <div class="form-group">
             <label for="check_in_date">{{ __('Fecha de entrada') }} *</label>
-            <input type="date" id="check_in_date" name="check_in_date" required value="{{ old('check_in_date') }}">
+            <input type="date" id="check_in_date" name="check_in_date" required value="{{ old('check_in_date', $reservationData['checkin'] ?? '') }}">
         </div>
 
         <div class="form-group">
             <label for="check_out_date">{{ __('Fecha de salida') }} *</label>
-            <input type="date" id="check_out_date" name="check_out_date" required value="{{ old('check_out_date') }}">
+            <input type="date" id="check_out_date" name="check_out_date" required value="{{ old('check_out_date', $reservationData['checkout'] ?? '') }}">
         </div>
 
         <div class="form-group">

@@ -7,23 +7,43 @@ use App\Http\Requests\StoreCheckInRequest;
 use App\Models\Guest;
 use App\Services\DocumentExtractionService;
 use App\Services\TravelerRegistryService;
+use App\Services\CrmCallbackService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 
 class CheckInController extends Controller
 {
     protected $extractionService;
     protected $registryService;
+    protected $crmCallbackService;
 
-    public function __construct(DocumentExtractionService $extractionService, TravelerRegistryService $registryService)
+    public function __construct(DocumentExtractionService $extractionService, TravelerRegistryService $registryService, CrmCallbackService $crmCallbackService)
     {
         $this->extractionService = $extractionService;
         $this->registryService = $registryService;
+        $this->crmCallbackService = $crmCallbackService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return view('checkin.step1');
+        $reservationData = null;
+        $tokenError = null;
+
+        if ($request->has('token')) {
+            try {
+                $reservationData = $this->validateAndDecodeToken($request->get('token'));
+                session([
+                    'reservation_data'  => $reservationData,
+                    'checkin_token'     => $request->get('token'),
+                ]);
+            } catch (\Exception $e) {
+                $tokenError = $e->getMessage();
+                Log::warning('CheckInController: Token inválido recibido: ' . $e->getMessage());
+            }
+        }
+
+        return view('checkin.step1', compact('reservationData', 'tokenError'));
     }
 
     public function processImages(Request $request)
@@ -56,9 +76,9 @@ class CheckInController extends Controller
             return redirect()->route('checkin.step1')->with('error', __('Por favor sube tu documento primero.'));
         }
 
-        // We receive the data passed from JS (extracted) or blank if failed
-        // The view will populate the fields or leave them blank
-        return view('checkin.step2');
+        $reservationData = session('reservation_data', []);
+
+        return view('checkin.step2', compact('reservationData'));
     }
 
     public function store(StoreCheckInRequest $request)
@@ -111,8 +131,16 @@ class CheckInController extends Controller
         // Optional: Trigger traveler registry dispatch here or in an event/observer
         // $this->registryService->dispatchPendingGuest($guest);
 
+        // Callback al CRM si la sesión tiene token
+        $checkinToken = session('checkin_token');
+        if ($checkinToken) {
+            $guestsPayload = $request->input('guests', []);
+            // Enviar de forma no bloqueante — si falla, el registro del huésped ya fue guardado
+            $this->crmCallbackService->enviarDatos($checkinToken, $guestsPayload);
+        }
+
         // Clear session data
-        session()->forget(['dni_front_path', 'dni_back_path', 'ai_status']);
+        session()->forget(['dni_front_path', 'dni_back_path', 'ai_status', 'reservation_data', 'checkin_token']);
         // Flash flag so the success page guard works
         session()->flash('checkin_complete', true);
 
@@ -125,6 +153,37 @@ class CheckInController extends Controller
             return redirect()->route('checkin.step1');
         }
         return view('checkin.success');
+    }
+
+    private function validateAndDecodeToken(string $token): array
+    {
+        $parts = explode('.', $token, 2);
+        if (count($parts) !== 2) {
+            throw new \Exception(__('Enlace de reserva malformado.'));
+        }
+
+        [$encoded, $signature] = $parts;
+        $secret = config('services.crm.checkin_secret');
+
+        if (empty($secret)) {
+            throw new \Exception(__('Configuración de integración incompleta.'));
+        }
+
+        $expected = hash_hmac('sha256', $encoded, $secret);
+        if (!hash_equals($expected, $signature)) {
+            throw new \Exception(__('El enlace de reserva no es válido.'));
+        }
+
+        $payload = json_decode(base64_decode($encoded), true);
+        if (!is_array($payload)) {
+            throw new \Exception(__('El enlace de reserva no se puede leer.'));
+        }
+
+        if (($payload['exp'] ?? 0) < time()) {
+            throw new \Exception(__('El enlace de reserva ha caducado. Contacte con el establecimiento.'));
+        }
+
+        return $payload;
     }
 
     public function setLocale($locale)

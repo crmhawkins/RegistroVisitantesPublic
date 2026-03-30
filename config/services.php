@@ -37,4 +37,9 @@ return [
 
     'mock_ai_extraction' => env('MOCK_AI_EXTRACTION', false),
 
+    'crm' => [
+        'checkin_secret' => env('CRM_APP_KEY'),
+        'callback_url'   => env('CRM_CALLBACK_URL'),
+    ],
+
 ];
