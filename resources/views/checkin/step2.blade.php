@@ -263,10 +263,12 @@
         var submitForm = document.getElementById('checkin-form');
         var signatureData = document.getElementById('signature_data');
         var clearBtn = document.getElementById('clear-signature');
+        var submitBtnEl = document.getElementById('submit-form');
         var ctx = canvas.getContext('2d');
         
         var isDrawing = false;
         var hasSignature = false;
+        var isSubmitting = false; // Prevent double submit
 
         function resizeCanvas() {
             var ratio = Math.max(window.devicePixelRatio || 1, 1);
@@ -282,18 +284,10 @@
 
         function getCoordinates(e) {
             var rect = canvas.getBoundingClientRect();
-            // Para touch
             if (e.touches && e.touches.length > 0) {
-                return {
-                    x: e.touches[0].clientX - rect.left,
-                    y: e.touches[0].clientY - rect.top
-                };
+                return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
             }
-            // Para mouse
-            return {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top
-            };
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
         }
 
         function startDrawing(e) {
@@ -313,9 +307,7 @@
             e.preventDefault();
         }
 
-        function stopDrawing() {
-            isDrawing = false;
-        }
+        function stopDrawing() { isDrawing = false; }
 
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mousemove', draw);
@@ -333,12 +325,49 @@
         });
 
         submitForm.addEventListener('submit', function(e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                return;
+            }
+            
             if (!hasSignature) {
                 e.preventDefault();
                 alert('{{ __("La firma es obligatoria.") }}');
                 return;
             }
             signatureData.value = canvas.toDataURL('image/png');
+            isSubmitting = true;
+            submitBtnEl.innerText = '{{ __("Procesando, por favor espere...") }}';
+            submitBtnEl.style.opacity = '0.7';
+            submitBtnEl.style.cursor = 'not-allowed';
+        });
+
+        // --- Restore Dynamic Validation Errors ---
+        document.addEventListener("DOMContentLoaded", function() {
+            var oldGuestsData = @json(old('guests'));
+            if (oldGuestsData && typeof oldGuestsData === 'object') {
+                var keys = Object.keys(oldGuestsData);
+                // We already have index 0 rendered in HTML. Clone for the rest.
+                for (var i = 1; i < keys.length; i++) {
+                    var idx = keys[i];
+                    addGuestBtn.click(); // Spawns a new clean block with the correctly incremented ID
+                    
+                    // Fill the newly spawned block with the old data
+                    var newlySpawnedIndex = guestCount - 1; 
+                    var oldGuest = oldGuestsData[idx];
+                    
+                    if (oldGuest) {
+                        for (var fieldName in oldGuest) {
+                            if (oldGuest.hasOwnProperty(fieldName)) {
+                                var input = document.querySelector('[name="guests[' + newlySpawnedIndex + '][' + fieldName + ']"]');
+                                if (input) {
+                                    input.value = oldGuest[fieldName];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         });
     </script>
 </x-layout>
