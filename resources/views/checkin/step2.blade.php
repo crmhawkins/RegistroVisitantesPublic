@@ -42,7 +42,24 @@
                 
                 <div class="form-group" id="relationship-group-0" style="display: none;">
                     <label>{{ __('Parentesco') }} *</label>
-                    <input type="text" name="guests[0][relationship]" class="relationship-input" value="{{ old('guests.0.relationship') }}">
+                    <select name="guests[0][relationship]" class="relationship-input">
+                        <option value="">-- {{ __('Seleccione parentesco') }} --</option>
+                        <option value="Abuelo/a" {{ old('guests.0.relationship') == 'Abuelo/a' ? 'selected' : '' }}>{{ __('Abuelo/a') }}</option>
+                        <option value="Bisabuelo/a" {{ old('guests.0.relationship') == 'Bisabuelo/a' ? 'selected' : '' }}>{{ __('Bisabuelo/a') }}</option>
+                        <option value="Bisnieto/a" {{ old('guests.0.relationship') == 'Bisnieto/a' ? 'selected' : '' }}>{{ __('Bisnieto/a') }}</option>
+                        <option value="Cuñado/a" {{ old('guests.0.relationship') == 'Cuñado/a' ? 'selected' : '' }}>{{ __('Cuñado/a') }}</option>
+                        <option value="Cónyuge" {{ old('guests.0.relationship') == 'Cónyuge' ? 'selected' : '' }}>{{ __('Cónyuge') }}</option>
+                        <option value="Hermano/a" {{ old('guests.0.relationship') == 'Hermano/a' ? 'selected' : '' }}>{{ __('Hermano/a') }}</option>
+                        <option value="Hijo/a" {{ old('guests.0.relationship') == 'Hijo/a' ? 'selected' : '' }}>{{ __('Hijo/a') }}</option>
+                        <option value="Nieto/a" {{ old('guests.0.relationship') == 'Nieto/a' ? 'selected' : '' }}>{{ __('Nieto/a') }}</option>
+                        <option value="Padre o Madre" {{ old('guests.0.relationship') == 'Padre o Madre' ? 'selected' : '' }}>{{ __('Padre o Madre') }}</option>
+                        <option value="Sobrino/a" {{ old('guests.0.relationship') == 'Sobrino/a' ? 'selected' : '' }}>{{ __('Sobrino/a') }}</option>
+                        <option value="Suegro/a" {{ old('guests.0.relationship') == 'Suegro/a' ? 'selected' : '' }}>{{ __('Suegro/a') }}</option>
+                        <option value="Tío/a" {{ old('guests.0.relationship') == 'Tío/a' ? 'selected' : '' }}>{{ __('Tío/a') }}</option>
+                        <option value="Tutor" {{ old('guests.0.relationship') == 'Tutor' ? 'selected' : '' }}>{{ __('Tutor') }}</option>
+                        <option value="Yerno o Nuera" {{ old('guests.0.relationship') == 'Yerno o Nuera' ? 'selected' : '' }}>{{ __('Yerno o Nuera') }}</option>
+                        <option value="Otro" {{ old('guests.0.relationship') == 'Otro' ? 'selected' : '' }}>{{ __('Otro') }}</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
