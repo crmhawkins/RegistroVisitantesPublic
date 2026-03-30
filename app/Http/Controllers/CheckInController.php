@@ -29,8 +29,8 @@ class CheckInController extends Controller
     public function processImages(Request $request)
     {
         $request->validate([
-            'dni_front' => 'required|image|mimes:jpeg,png,jpg|max:10240', // 10MB max
-            'dni_back' => 'nullable|image|mimes:jpeg,png,jpg|max:10240',
+            'dni_front' => 'required|file|mimes:jpeg,png,jpg,webp,heic,heif|max:20480', // 20MB max
+            'dni_back' => 'nullable|file|mimes:jpeg,png,jpg,webp,heic,heif|max:20480',
         ]);
 
         $frontPath = $request->file('dni_front')->store('private/dni_uploads');
@@ -94,7 +94,17 @@ class CheckInController extends Controller
 
         // Clear session data
         session()->forget(['dni_front_path', 'dni_back_path', 'ai_status']);
+        // Flash flag so the success page guard works
+        session()->flash('checkin_complete', true);
 
+        return redirect()->route('checkin.success');
+    }
+
+    public function success()
+    {
+        if (!session()->has('checkin_complete')) {
+            return redirect()->route('checkin.step1');
+        }
         return view('checkin.success');
     }
 

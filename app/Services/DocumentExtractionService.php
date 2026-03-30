@@ -12,7 +12,7 @@ class DocumentExtractionService
      */
     public function extract($frontImagePath, $backImagePath = null): array
     {
-        $isMockMode = env('MOCK_AI_EXTRACTION', false);
+        $isMockMode = config('services.mock_ai_extraction', false);
 
         if (!$isMockMode) {
             // TODO: Connect to real local AI container API

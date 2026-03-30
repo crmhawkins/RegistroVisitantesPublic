@@ -15,5 +15,5 @@ Route::middleware([\App\Http\Middleware\LocaleMiddleware::class])->group(functio
     Route::get('/checkin/form', [CheckInController::class, 'form'])->name('checkin.step2');
     Route::post('/checkin/store', [CheckInController::class, 'store'])->name('checkin.store');
     
-    Route::view('/checkin/success', 'checkin.success')->name('checkin.success');
+    Route::get('/checkin/success', [CheckInController::class, 'success'])->name('checkin.success');
 });

@@ -35,4 +35,6 @@ return [
         ],
     ],
 
+    'mock_ai_extraction' => env('MOCK_AI_EXTRACTION', false),
+
 ];

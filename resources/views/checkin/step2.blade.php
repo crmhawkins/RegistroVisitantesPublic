@@ -7,16 +7,18 @@
 
         <!-- AI Prefill Script -->
         <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                const dataStr = sessionStorage.getItem('ai_extracted_data');
+            document.addEventListener("DOMContentLoaded", function() {
+                var dataStr = sessionStorage.getItem('ai_extracted_data');
                 if (dataStr) {
                     try {
-                        const data = JSON.parse(dataStr);
-                        for (const key in data) {
-                            const field = document.getElementById(key);
-                            // Set if exists and value is empty (don't overwrite user changes if reloaded)
-                            if (field && !field.value) {
-                                field.value = data[key];
+                        var data = JSON.parse(dataStr);
+                        for (var key in data) {
+                            if (data.hasOwnProperty(key)) {
+                                var field = document.getElementById(key);
+                                // Set if exists and value is empty (don't overwrite user changes if reloaded)
+                                if (field && !field.value) {
+                                    field.value = data[key];
+                                }
                             }
                         }
                     } catch (e) { console.error('Error parsing AI data', e); }
@@ -157,19 +159,19 @@
 
     @stack('scripts')
     <script>
-        // Signature Canvas Logic Vanilla JS
-        const canvas = document.getElementById('signature-pad');
-        const submitForm = document.getElementById('checkin-form');
-        const signatureData = document.getElementById('signature_data');
-        const clearBtn = document.getElementById('clear-signature');
-        const ctx = canvas.getContext('2d');
+        // Signature Canvas Logic Vanilla JS (ES5 Compatible)
+        var canvas = document.getElementById('signature-pad');
+        var submitForm = document.getElementById('checkin-form');
+        var signatureData = document.getElementById('signature_data');
+        var clearBtn = document.getElementById('clear-signature');
+        var ctx = canvas.getContext('2d');
         
-        let isDrawing = false;
-        let hasSignature = false;
+        var isDrawing = false;
+        var hasSignature = false;
 
         // Resize canvas to fix blur on high DPI screens and mapping
         function resizeCanvas() {
-            const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
             canvas.width = canvas.offsetWidth * ratio;
             canvas.height = canvas.offsetHeight * ratio;
             ctx.scale(ratio, ratio);
@@ -181,7 +183,7 @@
         resizeCanvas();
 
         function getCoordinates(e) {
-            const rect = canvas.getBoundingClientRect();
+            var rect = canvas.getBoundingClientRect();
             // Para touch
             if (e.touches && e.touches.length > 0) {
                 return {
@@ -199,7 +201,7 @@
         function startDrawing(e) {
             isDrawing = true;
             hasSignature = true;
-            const pos = getCoordinates(e);
+            var pos = getCoordinates(e);
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
             e.preventDefault();
@@ -207,7 +209,7 @@
 
         function draw(e) {
             if (!isDrawing) return;
-            const pos = getCoordinates(e);
+            var pos = getCoordinates(e);
             ctx.lineTo(pos.x, pos.y);
             ctx.stroke();
             e.preventDefault();
@@ -226,13 +228,13 @@
         canvas.addEventListener('touchmove', draw);
         canvas.addEventListener('touchend', stopDrawing);
 
-        clearBtn.addEventListener('click', () => {
+        clearBtn.addEventListener('click', function() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             hasSignature = false;
             signatureData.value = '';
         });
 
-        submitForm.addEventListener('submit', (e) => {
+        submitForm.addEventListener('submit', function(e) {
             if (!hasSignature) {
                 e.preventDefault();
                 alert('{{ __("La firma es obligatoria.") }}');
