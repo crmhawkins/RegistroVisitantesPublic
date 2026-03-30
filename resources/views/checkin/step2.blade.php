@@ -189,7 +189,7 @@
                 <canvas id="signature-pad" style="width: 100%; height: 200px; touch-action: none; display: block;"></canvas>
             </div>
             <button type="button" id="clear-signature" class="btn btn-secondary" style="margin-top: 12px; font-size: 16px; padding: 12px;">{{ __('Limpiar firma') }}</button>
-            <input type="hidden" name="signature_data" id="signature_data">
+            <input type="hidden" name="signature_data" id="signature_data" value="{{ old('signature_data') }}">
             
             <div style="margin-top: 24px; text-align: center;">
                 <button type="button" id="add-guest-btn" class="btn btn-secondary" style="background-color: #e2e8f0; color: #1e293b; border: 1px dashed #94a3b8; font-weight: bold; width: auto; padding: 12px 24px; border-radius: 8px;">
@@ -288,6 +288,8 @@
         var isSubmitting = false; // Prevent double submit
 
         function resizeCanvas() {
+            var dataUrl = hasSignature ? canvas.toDataURL() : null;
+            
             var ratio = Math.max(window.devicePixelRatio || 1, 1);
             canvas.width = canvas.offsetWidth * ratio;
             canvas.height = canvas.offsetHeight * ratio;
@@ -295,9 +297,28 @@
             ctx.strokeStyle = '#000';
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
+            
+            // Si el móvil se gira y cambia tamaño, no borramos la firma
+            if (dataUrl) {
+                var img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+                };
+                img.src = dataUrl;
+            }
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
+
+        // Autorestaurar firma si la página recargó por error de validación
+        if (signatureData.value) {
+            var oldImg = new Image();
+            oldImg.onload = function() {
+                ctx.drawImage(oldImg, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+                hasSignature = true;
+            };
+            oldImg.src = signatureData.value;
+        }
 
         function getCoordinates(e) {
             var rect = canvas.getBoundingClientRect();

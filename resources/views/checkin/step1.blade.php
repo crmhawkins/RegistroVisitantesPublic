@@ -76,14 +76,13 @@
                     ctx.drawImage(img, 0, 0, width, height);
                     
                     if (canvas.toBlob) {
-                        var mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
                         canvas.toBlob(function(blob) {
                             if (blob) {
                                 callback(blob, true);
                             } else {
                                 callback(file, false);
                             }
-                        }, mime, 0.85);
+                        }, 'image/jpeg', 0.85);
                     } else {
                         callback(file, false);
                     }
@@ -138,6 +137,10 @@
                             restoreUI();
                             alert('{{ __("Error procesando la imagen.") }}');
                         }
+                    } else if (xhr.status === 419) {
+                        restoreUI();
+                        alert('{{ __("Tu sesión ha caducado por inactividad. La página se recargará automáticamente para que puedas continuar de forma segura.") }}');
+                        window.location.reload();
                     } else if (xhr.status === 422) {
                         restoreUI();
                         try {
