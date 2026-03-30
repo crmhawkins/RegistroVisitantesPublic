@@ -44,7 +44,7 @@
 
         function resizeImage(file, maxDim, callback) {
             if (!file || !file.type.match(/image.*/)) {
-                return callback(file);
+                return callback(file, false);
             }
             var reader = new FileReader();
             reader.onload = function(e) {
@@ -54,7 +54,7 @@
                     var height = img.height;
                     
                     if (width <= maxDim && height <= maxDim) {
-                        return callback(file);
+                        return callback(file, false); // No need to resize
                     }
                     
                     if (width > height) {
@@ -76,20 +76,28 @@
                     ctx.drawImage(img, 0, 0, width, height);
                     
                     if (canvas.toBlob) {
-                        // For non-PNG, we use JPEG for compression. iOS HEIC will become JPEG. 
                         var mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
                         canvas.toBlob(function(blob) {
-                            callback(blob || file);
+                            if (blob) {
+                                callback(blob, true);
+                            } else {
+                                callback(file, false);
+                            }
                         }, mime, 0.85);
                     } else {
-                        callback(file);
+                        callback(file, false);
                     }
                 };
-                img.onerror = function() { callback(file); };
+                img.onerror = function() { callback(file, false); };
                 img.src = e.target.result;
             };
-            reader.onerror = function() { callback(file); };
+            reader.onerror = function() { callback(file, false); };
             reader.readAsDataURL(file);
+        }
+
+        function restoreUI() {
+            document.getElementById('upload-form').style.display = 'block';
+            document.getElementById('loader').style.display = 'none';
         }
 
         submitBtn.addEventListener('click', function() {
@@ -120,38 +128,33 @@
                             result = JSON.parse(xhr.responseText);
                         } catch (e) {
                             alert('{{ __("Error del servidor, por favor intente de nuevo.") }}');
-                            document.getElementById('upload-form').style.display = 'block';
-                            document.getElementById('loader').style.display = 'none';
+                            restoreUI();
                             return;
                         }
                         if (result.success || result.data) {
                             sessionStorage.setItem('ai_extracted_data', JSON.stringify(result.data || {}));
                             window.location.href = '{{ route("checkin.step2") }}';
                         } else {
-                            document.getElementById('upload-form').style.display = 'block';
-                            document.getElementById('loader').style.display = 'none';
+                            restoreUI();
                             alert('{{ __("Error procesando la imagen.") }}');
                         }
                     } else if (xhr.status === 422) {
-                        document.getElementById('upload-form').style.display = 'block';
-                        document.getElementById('loader').style.display = 'none';
+                        restoreUI();
                         try {
                             var err = JSON.parse(xhr.responseText);
-                            var msg = err.message || '{{ __("Verifique el formato y tamaño (máx 20MB) de las imágenes.") }}';
+                            var msg = err.message || '{{ __("Verifique el formato y tamaño de las imágenes.") }}';
                             alert('{{ __("Error de validación:") }} ' + msg);
                         } catch(e) {
                             alert('{{ __("Error de validación en la imagen.") }}');
                         }
                     } else {
-                        document.getElementById('upload-form').style.display = 'block';
-                        document.getElementById('loader').style.display = 'none';
+                        restoreUI();
                         alert('{{ __("Error de red o servidor. (Código ") }}' + xhr.status + ')');
                     }
                 };
 
                 xhr.onerror = function() {
-                    document.getElementById('upload-form').style.display = 'block';
-                    document.getElementById('loader').style.display = 'none';
+                    restoreUI();
                     alert('{{ __("Error de conexión. Compruebe si tiene internet y vuelva a intentarlo.") }}');
                 };
 
@@ -159,19 +162,18 @@
             };
 
             // Process front image
-            resizeImage(frontInput.files[0], 1920, function(frontBlob) {
+            resizeImage(frontInput.files[0], 1920, function(frontBlob, isResized) {
                 var frontName = frontInput.files[0].name;
-                // Si cambiamos el formato a JPEG al reescalar, cambiamos extensión para evitar problemas
-                if (frontBlob !== frontInput.files[0] && frontBlob.type === 'image/jpeg' && !frontName.toLowerCase().match(/\.(jpg|jpeg)$/)) {
+                if (isResized && frontBlob.type === 'image/jpeg' && !frontName.toLowerCase().match(/\.(jpg|jpeg)$/)) {
                     frontName = frontName.replace(/\.[^/.]+$/, "") + ".jpg";
                 }
                 formData.append('dni_front', frontBlob, frontName);
                 
                 // Process back image if exists
                 if (backInput.files.length > 0) {
-                    resizeImage(backInput.files[0], 1920, function(backBlob) {
+                    resizeImage(backInput.files[0], 1920, function(backBlob, isBackResized) {
                         var backName = backInput.files[0].name;
-                        if (backBlob !== backInput.files[0] && backBlob.type === 'image/jpeg' && !backName.toLowerCase().match(/\.(jpg|jpeg)$/)) {
+                        if (isBackResized && backBlob.type === 'image/jpeg' && !backName.toLowerCase().match(/\.(jpg|jpeg)$/)) {
                             backName = backName.replace(/\.[^/.]+$/, "") + ".jpg";
                         }
                         formData.append('dni_back', backBlob, backName);
