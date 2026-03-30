@@ -12,6 +12,7 @@ class Guest extends Model
     protected $fillable = [
         'first_name',
         'last_name',
+        'relationship',
         'gender',
         'birth_date',
         'nationality',
@@ -52,6 +53,7 @@ class Guest extends Model
             // Encrypted fields for data protection
             'document_number' => 'encrypted',
             'document_support_number' => 'encrypted',
+            'relationship' => 'encrypted',
             'phone' => 'encrypted',
             'email' => 'encrypted',
             'address' => 'encrypted',

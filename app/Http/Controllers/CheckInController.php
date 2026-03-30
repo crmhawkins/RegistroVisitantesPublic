@@ -64,30 +64,49 @@ class CheckInController extends Controller
     public function store(StoreCheckInRequest $request)
     {
         // Validation handled by StoreCheckInRequest
+        $bookingData = $request->only(['check_in_date', 'check_out_date', 'payment_method']);
+        $signatureFileName = null;
 
-        $guest = new Guest($request->validated());
-        
-        // Handle Signature Base64 image
+        // Handle Signature Base64 image globally for all guests
         if ($request->filled('signature_data')) {
             $imageParts = explode(";base64,", $request->signature_data);
             if (count($imageParts) == 2) {
                 $imageTypeAux = explode("image/", $imageParts[0]);
                 $imageType = $imageTypeAux[1];
                 $imageBase64 = base64_decode($imageParts[1]);
-                $fileName = 'private/signatures/' . uniqid() . '.' . $imageType;
+                $signatureFileName = 'private/signatures/' . uniqid() . '.' . $imageType;
                 
-                Storage::put($fileName, $imageBase64);
-                $guest->signature_path = $fileName;
+                Storage::put($signatureFileName, $imageBase64);
             }
         }
 
-        // Restore DNI paths from session
-        $guest->dni_front_path = session('dni_front_path');
-        $guest->dni_back_path = session('dni_back_path');
-        $guest->ai_processed_status = session('ai_status', 'not_processed');
-        $guest->registry_sync_status = 'pending';
+        $guestsData = $request->input('guests', []);
 
-        $guest->save();
+        foreach ($guestsData as $index => $guestData) {
+            $guest = new Guest();
+            $guest->fill($guestData);
+
+            // Set shared booking details
+            $guest->check_in_date = $bookingData['check_in_date'];
+            $guest->check_out_date = $bookingData['check_out_date'];
+            $guest->payment_method = $bookingData['payment_method'];
+
+            $guest->signature_path = $signatureFileName;
+
+            // Only the first guest gets the DNI image and AI processed status natively from step 1
+            if ($index === 0) {
+                $guest->dni_front_path = session('dni_front_path');
+                $guest->dni_back_path = session('dni_back_path');
+                $guest->ai_processed_status = session('ai_status', 'not_processed');
+            } else {
+                $guest->dni_front_path = null;
+                $guest->dni_back_path = null;
+                $guest->ai_processed_status = 'not_processed';
+            }
+
+            $guest->registry_sync_status = 'pending';
+            $guest->save();
+        }
 
         // Optional: Trigger traveler registry dispatch here or in an event/observer
         // $this->registryService->dispatchPendingGuest($guest);

@@ -2,6 +2,16 @@
     <h1>{{ __('Paso 2 - Confirmación de datos') }}</h1>
     <p style="color: var(--text-muted); margin-bottom: 24px;">{{ __('Por favor, revisa y completa los datos.') }}</p>
 
+    @if ($errors->any())
+        <div style="background: #fee2e2; color: #b91c1c; padding: 15px; border-radius: 8px; margin-bottom: 24px;">
+            <ul style="margin:0; padding-left: 20px;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <form method="POST" action="{{ route('checkin.store') }}" id="checkin-form">
         @csrf
 
@@ -14,8 +24,8 @@
                         var data = JSON.parse(dataStr);
                         for (var key in data) {
                             if (data.hasOwnProperty(key)) {
-                                var field = document.getElementById(key);
-                                // Set if exists and value is empty (don't overwrite user changes if reloaded)
+                                var field = document.querySelector('[name="guests[0][' + key + ']"]');
+                                // Set if exists and value is empty
                                 if (field && !field.value) {
                                     field.value = data[key];
                                 }
@@ -26,95 +36,106 @@
             });
         </script>
 
-        <div class="form-group">
-            <label for="first_name">{{ __('Nombre') }} *</label>
-            <input type="text" id="first_name" name="first_name" required value="{{ old('first_name') }}">
-        </div>
+        <div id="guests-container">
+            <div class="guest-block" id="guest-block-0" style="padding-bottom: 20px;">
+                <h3 style="margin-bottom: 16px; color: var(--primary);">{{ __('Huésped 1 (Titular)') }}</h3>
+                
+                <div class="form-group" id="relationship-group-0" style="display: none;">
+                    <label>{{ __('Parentesco') }} *</label>
+                    <input type="text" name="guests[0][relationship]" class="relationship-input" value="{{ old('guests.0.relationship') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="last_name">{{ __('Apellidos') }} *</label>
-            <input type="text" id="last_name" name="last_name" required value="{{ old('last_name') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Nombre') }} *</label>
+                    <input type="text" name="guests[0][first_name]" required value="{{ old('guests.0.first_name') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="gender">{{ __('Sexo') }} *</label>
-            <select id="gender" name="gender" required>
-                <option value="">--</option>
-                <option value="M" {{ old('gender') == 'M' ? 'selected' : '' }}>Masculino / Male</option>
-                <option value="F" {{ old('gender') == 'F' ? 'selected' : '' }}>Femenino / Female</option>
-                <option value="O" {{ old('gender') == 'O' ? 'selected' : '' }}>Otro / Other</option>
-            </select>
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Apellidos') }} *</label>
+                    <input type="text" name="guests[0][last_name]" required value="{{ old('guests.0.last_name') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="birth_date">{{ __('Fecha de nacimiento') }} *</label>
-            <input type="date" id="birth_date" name="birth_date" required value="{{ old('birth_date') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Sexo') }} *</label>
+                    <select name="guests[0][gender]" required>
+                        <option value="">--</option>
+                        <option value="M" {{ old('guests.0.gender') == 'M' ? 'selected' : '' }}>Masculino / Male</option>
+                        <option value="F" {{ old('guests.0.gender') == 'F' ? 'selected' : '' }}>Femenino / Female</option>
+                        <option value="O" {{ old('guests.0.gender') == 'O' ? 'selected' : '' }}>Otro / Other</option>
+                    </select>
+                </div>
 
-        <div class="form-group">
-            <label for="nationality">{{ __('Nacionalidad') }} *</label>
-            <input type="text" id="nationality" name="nationality" required value="{{ old('nationality') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Fecha de nacimiento') }} *</label>
+                    <input type="date" name="guests[0][birth_date]" required value="{{ old('guests.0.birth_date') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="document_type">{{ __('Tipo de documento') }} *</label>
-            <select id="document_type" name="document_type" required>
-                <option value="DNI" {{ old('document_type') == 'DNI' ? 'selected' : '' }}>DNI</option>
-                <option value="Passport" {{ old('document_type') == 'Passport' ? 'selected' : '' }}>Passport</option>
-            </select>
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Nacionalidad') }} *</label>
+                    <input type="text" name="guests[0][nationality]" required value="{{ old('guests.0.nationality') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="document_number">{{ __('Número de documento') }} *</label>
-            <input type="text" id="document_number" name="document_number" required value="{{ old('document_number') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Tipo de documento') }} *</label>
+                    <select name="guests[0][document_type]" required>
+                        <option value="DNI" {{ old('guests.0.document_type') == 'DNI' ? 'selected' : '' }}>DNI</option>
+                        <option value="Passport" {{ old('guests.0.document_type') == 'Passport' ? 'selected' : '' }}>Passport</option>
+                    </select>
+                </div>
 
-        <div class="form-group">
-            <label for="document_support_number">{{ __('Número de soporte') }}</label>
-            <input type="text" id="document_support_number" name="document_support_number" value="{{ old('document_support_number') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Número de documento') }} *</label>
+                    <input type="text" name="guests[0][document_number]" required value="{{ old('guests.0.document_number') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="exp_date">{{ __('Fecha de expedición') }}</label>
-            <input type="date" id="exp_date" name="exp_date" value="{{ old('exp_date') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Número de soporte') }}</label>
+                    <input type="text" name="guests[0][document_support_number]" value="{{ old('guests.0.document_support_number') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="expiry_date">{{ __('Fecha de caducidad') }} *</label>
-            <input type="date" id="expiry_date" name="expiry_date" required value="{{ old('expiry_date') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Fecha de expedición') }}</label>
+                    <input type="date" name="guests[0][exp_date]" value="{{ old('guests.0.exp_date') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="address">{{ __('Dirección') }} *</label>
-            <input type="text" id="address" name="address" required value="{{ old('address') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Fecha de caducidad') }} *</label>
+                    <input type="date" name="guests[0][expiry_date]" required value="{{ old('guests.0.expiry_date') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="postal_code">{{ __('Código postal') }} *</label>
-            <input type="text" id="postal_code" name="postal_code" required value="{{ old('postal_code') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Dirección') }} *</label>
+                    <input type="text" name="guests[0][address]" required value="{{ old('guests.0.address') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="city">{{ __('Ciudad') }} *</label>
-            <input type="text" id="city" name="city" required value="{{ old('city') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Código postal') }} *</label>
+                    <input type="text" name="guests[0][postal_code]" required value="{{ old('guests.0.postal_code') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="country">{{ __('País') }} *</label>
-            <input type="text" id="country" name="country" required value="{{ old('country') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Ciudad') }} *</label>
+                    <input type="text" name="guests[0][city]" required value="{{ old('guests.0.city') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="phone">{{ __('Teléfono') }}</label>
-            <input type="text" id="phone" name="phone" value="{{ old('phone') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('País') }} *</label>
+                    <input type="text" name="guests[0][country]" required value="{{ old('guests.0.country') }}">
+                </div>
 
-        <div class="form-group">
-            <label for="email">{{ __('Email') }}</label>
-            <input type="email" id="email" name="email" value="{{ old('email') }}">
-        </div>
+                <div class="form-group">
+                    <label>{{ __('Teléfono') }}</label>
+                    <input type="text" name="guests[0][phone]" value="{{ old('guests.0.phone') }}">
+                </div>
 
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 32px 0;">
+                <div class="form-group">
+                    <label>{{ __('Email') }}</label>
+                    <input type="email" name="guests[0][email]" value="{{ old('guests.0.email') }}">
+                </div>
+                
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 32px 0;">
+            </div>
+        </div>
 
         <!-- BOOKING BLOCKS -->
         <div class="form-group">
@@ -152,6 +173,12 @@
             </div>
             <button type="button" id="clear-signature" class="btn btn-secondary" style="margin-top: 12px; font-size: 16px; padding: 12px;">{{ __('Limpiar firma') }}</button>
             <input type="hidden" name="signature_data" id="signature_data">
+            
+            <div style="margin-top: 24px; text-align: center;">
+                <button type="button" id="add-guest-btn" class="btn btn-secondary" style="background-color: #e2e8f0; color: #1e293b; border: 1px dashed #94a3b8; font-weight: bold; width: auto; padding: 12px 24px; border-radius: 8px;">
+                    + {{ __('Añadir más huéspedes') }}
+                </button>
+            </div>
         </div>
 
         <button type="submit" class="btn" id="submit-form">{{ __('Confirmar y guardar') }}</button>
@@ -159,7 +186,79 @@
 
     @stack('scripts')
     <script>
-        // Signature Canvas Logic Vanilla JS (ES5 Compatible)
+        // --- Multi-Guest Logic Vanilla JS (ES5) ---
+        var guestCount = 1;
+        var addGuestBtn = document.getElementById('add-guest-btn');
+        var guestsContainer = document.getElementById('guests-container');
+
+        addGuestBtn.addEventListener('click', function() {
+            var originalBlock = document.getElementById('guest-block-0');
+            var clone = originalBlock.cloneNode(true);
+            
+            clone.id = 'guest-block-' + guestCount;
+            
+            // Update Title
+            var h3 = clone.querySelector('h3');
+            if (h3) {
+                h3.innerText = '{{ __("Huésped") }} ' + (guestCount + 1);
+            }
+
+            // Show Relationship Field and Make it Required
+            var relGroup = clone.querySelector('#relationship-group-0');
+            if (relGroup) {
+                relGroup.id = 'relationship-group-' + guestCount;
+                relGroup.style.display = 'block';
+                var relInput = relGroup.querySelector('.relationship-input');
+                if (relInput) {
+                    relInput.required = true;
+                }
+            }
+
+            // Update Input Names and Values
+            var inputs = clone.querySelectorAll('input, select');
+            for (var i = 0; i < inputs.length; i++) {
+                var input = inputs[i];
+                if (input.name) {
+                    input.name = input.name.replace('guests[0]', 'guests[' + guestCount + ']');
+                }
+                // Clear values except for selects or checkboxes
+                if (input.tagName === 'INPUT') {
+                    input.value = '';
+                } else if (input.tagName === 'SELECT') {
+                    input.selectedIndex = 0;
+                }
+            }
+
+            // Remove potentially nested remove buttons if we accidentally cloned one
+            var existingRemoveBtns = clone.querySelectorAll('.remove-guest-btn');
+            for (var j = 0; j < existingRemoveBtns.length; j++) {
+                existingRemoveBtns[j].parentNode.removeChild(existingRemoveBtns[j]);
+            }
+
+            // Add a Remove Button for this clone
+            var removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-secondary remove-guest-btn';
+            removeBtn.style.marginTop = '16px';
+            removeBtn.style.backgroundColor = '#fee2e2';
+            removeBtn.style.color = '#b91c1c';
+            removeBtn.style.border = '1px solid #f87171';
+            removeBtn.innerText = '{{ __("Eliminar huésped") }}';
+            removeBtn.onclick = function() {
+                guestsContainer.removeChild(clone);
+            };
+            clone.appendChild(removeBtn);
+
+            guestsContainer.appendChild(clone);
+            guestCount++;
+            
+            // Scroll to new guest smoothly
+            if (clone.scrollIntoView) {
+                clone.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+
+        // --- Signature Canvas Logic Vanilla JS (ES5 Compatible) ---
         var canvas = document.getElementById('signature-pad');
         var submitForm = document.getElementById('checkin-form');
         var signatureData = document.getElementById('signature_data');
@@ -169,7 +268,6 @@
         var isDrawing = false;
         var hasSignature = false;
 
-        // Resize canvas to fix blur on high DPI screens and mapping
         function resizeCanvas() {
             var ratio = Math.max(window.devicePixelRatio || 1, 1);
             canvas.width = canvas.offsetWidth * ratio;
