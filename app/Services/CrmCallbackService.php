@@ -30,7 +30,7 @@ class CrmCallbackService
                 return true;
             }
 
-            Log::error('CrmCallbackService: El CRM respondió con error. Status: ' . $response->status() . ' Body: ' . $response->body());
+            Log::error('CrmCallbackService: El CRM respondió con error. Status: ' . $response->status());
             return false;
 
         } catch (\Exception $e) {

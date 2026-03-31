@@ -14,7 +14,7 @@ class StoreCheckInRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'guests' => 'required|array|min:1',
+            'guests' => 'required|array|min:1|max:10',
             'guests.*.first_name' => 'required|string|max:100',
             'guests.*.last_name' => 'required|string|max:100',
             // El parentesco es obligatorio para los huéspedes extra.
@@ -38,7 +38,7 @@ class StoreCheckInRequest extends FormRequest
             // Shared booking fields globally outside array
             'check_in_date' => 'required|date',
             'check_out_date' => 'required|date|after:check_in_date',
-            'payment_method' => 'required|string',
+            'payment_method' => 'required|string|in:Tarjeta,Efectivo,Transferencia',
             'signature_data' => 'required|string', // Base64 data
             'terms_accepted' => 'required|accepted',
         ];

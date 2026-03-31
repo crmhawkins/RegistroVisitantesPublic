@@ -220,6 +220,10 @@
         var guestsContainer = document.getElementById('guests-container');
 
         addGuestBtn.addEventListener('click', function() {
+            if (guestCount >= 10) {
+                alert('{{ __("Máximo 10 huéspedes por reserva.") }}');
+                return;
+            }
             var originalBlock = document.getElementById('guest-block-0');
             var clone = originalBlock.cloneNode(true);
             

@@ -49,8 +49,8 @@ class CheckInController extends Controller
     public function processImages(Request $request)
     {
         $request->validate([
-            'dni_front' => 'required|file',
-            'dni_back' => 'nullable|file',
+            'dni_front' => 'required|file|max:8192|mimes:jpeg,jpg,png,webp',
+            'dni_back'  => 'nullable|file|max:8192|mimes:jpeg,jpg,png,webp',
         ]);
 
         $frontPath = $request->file('dni_front')->store('private/dni_uploads');
@@ -59,7 +59,12 @@ class CheckInController extends Controller
             : null;
 
         // Process with AI Service
-        $extractedData = $this->extractionService->extract($frontPath, $backPath);
+        try {
+            $extractedData = $this->extractionService->extract($frontPath, $backPath);
+        } catch (\Exception $e) {
+            Log::error('DocumentExtractionService error: ' . $e->getMessage());
+            $extractedData = ['status' => 'not_processed', 'data' => []];
+        }
 
         // Store paths in session to use them later in step 2
         session(['dni_front_path' => $frontPath, 'dni_back_path' => $backPath, 'ai_status' => $extractedData['status'] ?? 'not_processed']);
@@ -93,6 +98,9 @@ class CheckInController extends Controller
             if (count($imageParts) == 2) {
                 $imageTypeAux = explode("image/", $imageParts[0]);
                 $imageType = $imageTypeAux[1];
+                if (!in_array($imageType, ['png', 'jpeg', 'jpg', 'gif', 'webp'])) {
+                    return redirect()->back()->withErrors(['signature_data' => __('Formato de firma no válido.')]);
+                }
                 $imageBase64 = base64_decode($imageParts[1]);
                 $signatureFileName = 'private/signatures/' . uniqid() . '.' . $imageType;
                 
@@ -174,7 +182,7 @@ class CheckInController extends Controller
             throw new \Exception(__('El enlace de reserva no es válido.'));
         }
 
-        $payload = json_decode(base64_decode($encoded), true);
+        $payload = json_decode(base64_decode(str_pad(strtr($encoded, '-_', '+/'), strlen($encoded) + (4 - strlen($encoded) % 4) % 4, '=')), true);
         if (!is_array($payload)) {
             throw new \Exception(__('El enlace de reserva no se puede leer.'));
         }

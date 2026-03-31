@@ -11,9 +11,11 @@ Route::get('/lang/{locale}', [CheckInController::class, 'setLocale'])->name('set
 
 Route::middleware([\App\Http\Middleware\LocaleMiddleware::class])->group(function() {
     Route::get('/checkin', [CheckInController::class, 'index'])->name('checkin.step1');
-    Route::post('/checkin/process', [CheckInController::class, 'processImages'])->name('checkin.process');
     Route::get('/checkin/form', [CheckInController::class, 'form'])->name('checkin.step2');
-    Route::post('/checkin/store', [CheckInController::class, 'store'])->name('checkin.store');
-    
     Route::get('/checkin/success', [CheckInController::class, 'success'])->name('checkin.success');
+
+    Route::middleware('throttle:20,1')->group(function () {
+        Route::post('/checkin/process', [CheckInController::class, 'processImages'])->name('checkin.process');
+        Route::post('/checkin/store', [CheckInController::class, 'store'])->name('checkin.store');
+    });
 });

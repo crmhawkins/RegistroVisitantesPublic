@@ -46,12 +46,12 @@
 
         function updateUI() {
             if (frontInput.files.length > 0) {
-                frontText.innerHTML = "✅ " + frontInput.files[0].name;
+                frontText.textContent = "✅ " + frontInput.files[0].name;
                 frontText.style.color = "green";
                 submitBtn.disabled = false;
             }
             if (backInput.files.length > 0) {
-                backText.innerHTML = "✅ " + backInput.files[0].name;
+                backText.textContent = "✅ " + backInput.files[0].name;
                 backText.style.color = "green";
             }
         }
